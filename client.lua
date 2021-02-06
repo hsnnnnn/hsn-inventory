@@ -71,6 +71,7 @@ end
 OpenTrunk = function(trunkid)
     TriggerServerEvent("hsn-inventory:server:openInventory",{type = 'trunk',id = 'trunk-'..trunkid})
 end
+
 RegisterNetEvent("hsn-inventory:client:openInventory")
 AddEventHandler("hsn-inventory:client:openInventory",function(inventory,other)
     invopen = true
@@ -88,7 +89,8 @@ AddEventHandler("hsn-inventory:client:openInventory",function(inventory,other)
         rightinventory = other
     })
     TriggerServerEvent("hsn-inventory:setcurrentInventory",other)
-    SetNuiFocusAdvanced(true, true)
+    if other == nil then movement = true else movement = false end
+    SetNuiFocusAdvanced(true, true, movement)
 end)
 
 
@@ -357,7 +359,7 @@ Citizen.CreateThread(function()
 end)
 
 local nui_focus = {false, false}
-function SetNuiFocusAdvanced(hasFocus, hasCursor)
+function SetNuiFocusAdvanced(hasFocus, hasCursor, allowMovement)
     SetNuiFocus(hasFocus, hasCursor)
     SetNuiFocusKeepInput(hasFocus)
     nui_focus = {hasFocus, hasCursor}
@@ -375,8 +377,10 @@ function SetNuiFocusAdvanced(hasFocus, hasCursor)
                 end
                 EnableControlAction(0, 249, true) -- N for PTT
                 EnableControlAction(0, 20, true) -- Z for proximity
-                EnableControlAction(0, 30, true) -- movement
-                EnableControlAction(0, 31, true) -- movement
+                if allowMovement then
+                    EnableControlAction(0, 30, true) -- movement
+                    EnableControlAction(0, 31, true) -- movement
+                end
                 if not nui_focus[1] then
                     ticks = ticks + 1
                     if (IsDisabledControlJustReleased(0, 200, true) or ticks > 20) then
