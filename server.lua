@@ -27,7 +27,7 @@ exports.ghmattimysql:ready(function()
     end)
     print('[^2hsn-inventory^0] - Started!')
     print('[^2hsn-inventory^0] - Items are created!')
-    print('^1[hsn-inventory] - Don\'t restart this script while players in game !')
+    print('^1[hsn-inventory] - Don\'t restart this script while players in game!^0')
 end)
 
 
@@ -93,6 +93,19 @@ AddPlayerInventory = function(identifier,item, count, slot, metadata)
                             metadata.ammo = 0
                         end
                             playerInventory[identifier][i] = {name = item ,label = ESXItems[item].label , weight = ESXItems[item].weight, slot = i, count = count, description = ESXItems[item].description, metadata = metadata or {}, stackable = false, closeonuse = ESXItems[item].closeonuse} -- because weapon :)
+                        break
+                    end
+                end
+            elseif item:find('identification') then
+                local xPlayer = ESX.GetPlayerFromIdentifier(identifier)
+                count = 1 
+                for i = 1, Config.PlayerSlot do
+                    if playerInventory[identifier][i] == nil then
+                        if metadata == nil then
+                            metadata = {}
+                            metadata.description = getIdentificationData(xPlayer)
+                        end
+                            playerInventory[identifier][i] = {name = item ,label = ESXItems[item].label , weight = ESXItems[item].weight, slot = i, count = count, description = ESXItems[item].description, metadata = metadata or {}, stackable = false, closeonuse = ESXItems[item].closeonuse}
                         break
                     end
                 end
@@ -515,6 +528,9 @@ AddEventHandler("hsn-inventory:server:saveInventoryData",function(data)
                             data.item.metadata.weaponlicense = GetRandomLicense()
                             data.item.metadata.ammo = 0
                             data.item.metadata.durability = 100
+                        elseif data.item.name:find('identification') then
+                            data.item.metadata = {}
+                            data.item.metadata.description = getPlayerIdentification(Player)
                         end
                             playerInventory[Player.identifier][data.toslot] = {name = data.item.name ,label = data.item.label, weight = data.item.weight, slot = data.toslot, count = data.item.count, description = data.item.description, metadata = data.item.metadata, stackable = data.item.stackable, closeonuse = ESXItems[data.item.name].closeonuse}
                             TriggerClientEvent("hsn-inventory:client:refreshInventory",src,playerInventory[Player.identifier])
@@ -534,6 +550,9 @@ AddEventHandler("hsn-inventory:server:saveInventoryData",function(data)
                             data.newslotItem.metadata.weaponlicense = GetRandomLicense()
                             data.newslotItem.metadata.ammo = 0
                             data.newslotItem.metadata.durability = 100
+                        elseif data.newslotItem.name:find('identification') then
+                            data.newslotItem.metadata = {}
+                            data.newslotItem.metadata.description = getPlayerIdentification(Player)
                         end
                         Player.removeMoney(data.newslotItem.price *  data.newslotItem.count)
                         playerInventory[Player.identifier][data.toSlot] = {name = data.newslotItem.name ,label = data.newslotItem.label, weight = data.newslotItem.weight, slot = data.toSlot, count = data.newslotItem.count, description = data.newslotItem.description, metadata = data.newslotItem.metadata, stackable = data.newslotItem.stackable, closeonuse = ESXItems[data.newslotItem.name].closeonuse}
@@ -736,8 +755,8 @@ GetInventory = function(inventory)
             name = v.name,
             count = v.count,
             metadata = v.metadata,
-            slot = k,
-        }
+            slot = k
+        } 
     end
     return returnData
 end
@@ -1129,8 +1148,6 @@ AddEventHandler('onResourceStart', function(resourceName)
     end
 end)
 
-
-
-
-  
-  
+function getPlayerIdentification(xPlayer)
+    return ('Name: %s | Sex: %s | Height: %s<br>DOB: %s (%s)'):format( xPlayer.getName(), xPlayer.get('sex'), xPlayer.get('height'), xPlayer.get('dateofbirth'), xPlayer.getIdentifier() )
+end

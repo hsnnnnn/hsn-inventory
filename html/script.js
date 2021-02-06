@@ -303,7 +303,11 @@
         if (Item != undefined) {
             $(".iteminfo").fadeIn(100);
             $(".iteminfo-label").html('<p>'+Item.label+'</p>')
-            $(".iteminfo-description").html('<p><strong>'+Item.description+'<p><strong>')
+            if (Item.metadata.description != undefined) {
+                $(".iteminfo-description").html('<p><strong>'+Item.description+'<br>'+Item.metadata.description+'</p></strong>')
+            } else {
+                $(".iteminfo-description").html('<p><strong>'+Item.description+'<p><strong>')
+            }
             if ((Item.name).split("_")[0] == "WEAPON") {
                 if (Item.metadata.weaponlicense == null || undefined) {
                     Item.metadata.weaponlicense = "HSN"
