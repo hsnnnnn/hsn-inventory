@@ -1,5 +1,6 @@
 ESX = nil
 local PlayerData = {}
+local invopen = false
 -- hsn inventory Hasan.#7803
 Citizen.CreateThread(function()
     while ESX == nil do
@@ -11,6 +12,7 @@ Citizen.CreateThread(function()
     end
     PlayerData = ESX.GetPlayerData()
 end)
+
 local Drops = {}
 local currentDrop = nil
 local curweaponSlot = nil
@@ -30,7 +32,7 @@ Citizen.CreateThread(function()
         DisableControlAction(0, 164, true) -- 4
         DisableControlAction(0, 165, true) -- 5
         DisableControlAction(0, 289, true) -- F2
-        if IsDisabledControlJustPressed(1,289) then
+        if IsDisabledControlJustPressed(1,289) and not invopen then
             TriggerEvent("randPickupAnim")
             TriggerServerEvent("hsn-inventory:server:openInventory",{type = 'drop',id = currentDrop})
         end
@@ -71,6 +73,7 @@ OpenTrunk = function(trunkid)
 end
 RegisterNetEvent("hsn-inventory:client:openInventory")
 AddEventHandler("hsn-inventory:client:openInventory",function(inventory,other)
+    invopen = true
     -- some players dupe while taskbar on screen
     -- local check = exports["progressBars"]:onScreen()
     -- if check then
@@ -85,17 +88,18 @@ AddEventHandler("hsn-inventory:client:openInventory",function(inventory,other)
         rightinventory = other
     })
     TriggerServerEvent("hsn-inventory:setcurrentInventory",other)
-    SetNuiFocus(true, true)
+    SetNuiFocusAdvanced(true, true)
 end)
 
 
 
 RegisterNetEvent("hsn-inventory:client:closeInventory")
 AddEventHandler("hsn-inventory:client:closeInventory",function(id)
+    invopen = false
     SendNUIMessage({
         message = 'close',
     })
-    SetNuiFocus(false,false)
+    SetNuiFocusAdvanced(false,false)
     TriggerServerEvent("hsn-inventory:removecurrentInventory",id)
 end)
 
@@ -116,7 +120,7 @@ end)
 
 
 RegisterNUICallback("exit",function(data)
-    SetNuiFocus(false,false)
+    SetNuiFocusAdvanced(false,false)
     TriggerServerEvent('hsn-inventory:server:saveInventory',data)
     TriggerServerEvent("hsn-inventory:removecurrentInventory",data.invid)
 end)
@@ -327,7 +331,7 @@ end)
 
 RegisterNetEvent("hsn-inventory:client:esxUseItem")
 AddEventHandler("hsn-inventory:client:esxUseItem",function(item)
-    TriggerServerEvent("esx:useItem",item.name)
+    TriggerServerEvent("esx:useItem", item.name)
 end)
 
 RegisterCommand("robplayer",function()
@@ -352,4 +356,39 @@ Citizen.CreateThread(function()
     end
 end)
 
+local nui_focus = {false, false}
+function SetNuiFocusAdvanced(hasFocus, hasCursor)
+    SetNuiFocus(hasFocus, hasCursor)
+    SetNuiFocusKeepInput(hasFocus)
+    nui_focus = {hasFocus, hasCursor}
+    TriggerEvent("nui:focus", hasFocus, hasCursor)
 
+    if nui_focus[1] then
+        Citizen.CreateThread(function()
+            local ticks = 0
+            while true do
+                Citizen.Wait(0)
+                DisableAllControlActions(0)
+                if not nui_focus[2] then
+                    EnableControlAction(0, 1, true)
+                    EnableControlAction(0, 2, true)
+                end
+                EnableControlAction(0, 249, true) -- N for PTT
+                EnableControlAction(0, 20, true) -- Z for proximity
+                EnableControlAction(0, 30, true) -- movement
+                EnableControlAction(0, 31, true) -- movement
+                if not nui_focus[1] then
+                    ticks = ticks + 1
+                    if (IsDisabledControlJustReleased(0, 200, true) or ticks > 20) then
+                        invopen = false
+                        break
+                    end
+                end
+            end
+        end)
+    end
+end
+
+RegisterCommand('closeinv', function()
+        TriggerEvent("hsn-inventory:client:closeInventory")
+end, false)
