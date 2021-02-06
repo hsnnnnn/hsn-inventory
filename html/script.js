@@ -1,3 +1,6 @@
+$('document').ready(function() {
+    $('.inventory-main').hide()
+});
 
     var disabled = false
     var drag = false
@@ -21,7 +24,7 @@
         } else {
             $(".inventory-main").fadeOut(300);
             $('.inventory-main').hide()
-            $(".item-slot").css("border", "1px solid rgba(255, 255, 255, 0.1)");
+            //$(".item-slot").css("border", "1px solid rgba(255, 255, 255, 0.1)");
             $(".item-slot").remove();
             $(".ItemBoxes").remove();
             $(".inventory-main-leftside").find(".item-slot").remove();
@@ -29,7 +32,7 @@
             toplamkg = 0
         }
     }
-    console.log("[hsn-inventory] = Successfully Loaded :)")
+    //console.log("[hsn-inventory] = Successfully Loaded :)")
     Display(false)
     window.addEventListener('message', function(event) {
         if (event.data.message == 'openinventory') {
@@ -76,33 +79,34 @@
             quality = 100
         }
         var color = "#0bb80b"
-        var text = "PERFECT"
+        var text = ''
         var width = 100
         if (quality == 100) {
             color = "#0bb80b",
-            text = parseInt(quality).toFixed(2),
+            text = '',
             width = quality
         } else if (quality >= 80 && quality <= 100) {
             color = "#0bb80b",
-            text = parseInt(quality).toFixed(2),
+            text = '',
             width = quality
         } else if (quality >= 50 && quality <= 80) {
             color = "#0bb80b81",
-            text = parseInt(quality).toFixed(2),
+            text = '',
             width = quality
         } else if (quality >= 20 && quality <= 50) {
-            color = "#ca790fcb",
-            text = parseInt(quality).toFixed(2),
+            color = "#ca250fcb",
+            text = '',
             width = quality
         } else if (quality >= 1 && quality <= 20) {
-            color = parseInt(quality).toFixed(2),
-            text = "BAD",
+            color = '#a31a1acb',
+            text = '',
             width = quality
         } else if (quality == 0) {
             color = "crimson",
-            text = "BROKEN",
+            text = '',
             width = 100
         }
+        //parseInt(quality).toFixed(2)
         return [color = color,text = text,width = width];
 
     }
@@ -304,9 +308,9 @@
             $(".iteminfo").fadeIn(100);
             $(".iteminfo-label").html('<p>'+Item.label+'</p>')
             if (Item.metadata.description != undefined) {
-                $(".iteminfo-description").html('<p><strong>'+Item.description+'<br>'+Item.metadata.description+'</p></strong>')
+                $(".iteminfo-description").html('<p>'+Item.description+'<br>'+Item.metadata.description+'</p>')
             } else {
-                $(".iteminfo-description").html('<p><strong>'+Item.description+'<p><strong>')
+                $(".iteminfo-description").html('<p>'+Item.description+'</p>')
             }
             if ((Item.name).split("_")[0] == "WEAPON") {
                 if (Item.metadata.weaponlicense == null || undefined) {
@@ -318,9 +322,9 @@
                 if (Item.metadata.ammo == null || undefined) {
                     Item.metadata.ammo = "Unknown"
                 }
-                $(".iteminfo-description").append('<p>Weapon License: <strong>'+Item.metadata.weaponlicense+'<p><strong>')
-                $(".iteminfo-description").append('<p>Durability: <strong>'+parseInt(Item.metadata.durability).toFixed(2)+''+'%<p><strong>')
-                $(".iteminfo-description").append('<p>Weapon Ammo : <strong>'+Item.metadata.ammo+'<p><strong>')
+                $(".iteminfo-description").append('<p>Serial Number: <strong>'+Item.metadata.weaponlicense+'</p></strong>')
+                $(".iteminfo-description").append('<p>Durability: <strong>'+parseInt(Item.metadata.durability).toFixed(2)+''+'%</p></strong>')
+                $(".iteminfo-description").append('<p>Weapon Ammo : <strong>'+Item.metadata.ammo+'</p></strong>')
             }
         } else {
             $(".iteminfo").fadeOut(100);
@@ -355,6 +359,9 @@
         
         Display(false)
     });
+
+
+    
 
     SwapItems = function(fromInventory, toInventory, fromSlot, toSlot) {
         fromItem = fromInventory.find("[inventory-slot=" + fromSlot + "]").data("ItemData");
