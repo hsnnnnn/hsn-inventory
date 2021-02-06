@@ -64,7 +64,7 @@ Citizen.CreateThread(function()
                         local plate = GetVehicleNumberPlateText(vehicle)
                         OpenTrunk(plate)
                     else
-                       TriggerEvent('notification','Car locked',2)
+                       TriggerEvent('notification','This vehicle is locked',2)
                     end
                 end
             end
@@ -317,7 +317,7 @@ AddEventHandler("hsn-inventory:addAmmo",function(item, name)
                 TriggerServerEvent("hsn-inventory:server:addweaponAmmo",curweaponSlot,item.count)
                 TaskReloadWeapon(playerPed)
                 SetPedAmmo(playerPed, weapon, newAmmo)
-                TriggerEvent("notification","Reloaded")
+                TriggerEvent("notification","Reloaded", 1)
                 TriggerServerEvent("hsn-inventory:client:removeItem",name,1)
             else
                 TriggerEvent("notification","Max Ammo")
@@ -357,7 +357,7 @@ RegisterCommand("robplayer",function()
     if closestPlayer ~= -1 and closestDistance <= 3.0 then
         TriggerServerEvent("hsn-inventory:server:robPlayer",GetPlayerServerId(GetClosestPlayer))
     else
-        TriggerEvent("notification",'No one is nearby')
+        TriggerEvent("notification",'There is nobody nearby')
     end
 end)
 
@@ -408,6 +408,15 @@ function SetNuiFocusAdvanced(hasFocus, hasCursor, allowMovement)
         end)
     end
 end
+--[[ Disabled by default, remove comment block to use mythic_notify for notifications
+RegisterNetEvent("notification")
+AddEventHandler("notification",function(message, mtype)
+    if mtype == 1 then mtype = { ['background-color'] = 'rgba(55,55,175)', ['color'] = 'white' }
+    elseif not mtype or mtype == 2 then mtype = { ['background-color'] = 'rgba(175,55,55)', ['color'] = 'white' }
+    end
+    TriggerEvent('mythic_notify:client:SendAlert', {type = 'inform', text = message, length = 2500,style = mtype})
+end)
+]]
 
 RegisterCommand('closeinv', function()
         TriggerEvent("hsn-inventory:client:closeInventory")
