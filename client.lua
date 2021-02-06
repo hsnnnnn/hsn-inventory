@@ -32,13 +32,15 @@ Citizen.CreateThread(function()
         DisableControlAction(0, 164, true) -- 4
         DisableControlAction(0, 165, true) -- 5
         DisableControlAction(0, 289, true) -- F2
-        if IsDisabledControlJustPressed(1,289) and not invopen then
-            TriggerEvent("randPickupAnim")
-            TriggerServerEvent("hsn-inventory:server:openInventory",{type = 'drop',id = currentDrop})
-        end
-        for k, v in pairs(keys) do
-            if IsDisabledControlJustReleased(0, v) then
-                TriggerServerEvent("hsn-inventory:server:useItemfromSlot",k)
+        if not invopen then
+            if IsDisabledControlJustPressed(1,289) then
+                TriggerEvent("randPickupAnim")
+                TriggerServerEvent("hsn-inventory:server:openInventory",{type = 'drop',id = currentDrop})
+            end
+            for k, v in pairs(keys) do
+                if IsDisabledControlJustReleased(0, v) then
+                    TriggerServerEvent("hsn-inventory:server:useItemfromSlot",k)
+                end
             end
         end
         if IsPedInAnyVehicle(PlayerPedId(), false) then
