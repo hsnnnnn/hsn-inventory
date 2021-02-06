@@ -13,6 +13,11 @@ Citizen.CreateThread(function()
     PlayerData = ESX.GetPlayerData()
 end)
 
+RegisterNetEvent('esx:setJob')
+AddEventHandler('esx:setJob', function(job)
+    PlayerData.job = job
+end)
+
 local Drops = {}
 local currentDrop = nil
 local curweaponSlot = nil
@@ -73,7 +78,6 @@ end
 OpenTrunk = function(trunkid)
     TriggerServerEvent("hsn-inventory:server:openInventory",{type = 'trunk',id = 'trunk-'..trunkid})
 end
-
 RegisterNetEvent("hsn-inventory:client:openInventory")
 AddEventHandler("hsn-inventory:client:openInventory",function(inventory,other)
     invopen = true
@@ -176,31 +180,35 @@ end
 
 Citizen.CreateThread(function()
     while true do
+        while not PlayerData.job do Citizen.Wait(0) end
         Citizen.Wait(2)
         for i = 1, #Config.Shops do
             distance = #(GetEntityCoords(PlayerPedId()) - Config.Shops[i].coords)
-            if distance <= 2.5 then
-                DrawText3Ds(Config.Shops[i].coords.x,Config.Shops[i].coords.y,Config.Shops[i].coords.z+0.3,Config.Shops[i].text)
-                DrawMarker(2, Config.Shops[i].coords.x,Config.Shops[i].coords.y,Config.Shops[i].coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 200, 0, 0, 222, false, false, false, true, false, false, false)
-                if IsControlJustPressed(1,38) then
+            if distance <= 2.5 and (not Config.Shops[i].job or Config.Shops[i].job == PlayerData.job.name) then
+                DrawMarker(2, Config.Shops[i].coords.x,Config.Shops[i].coords.y,Config.Shops[i].coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.15, 0.2, 30, 150, 30, 100, false, false, false, true, false, false, false)
+                if IsControlJustPressed(1,38) and distance <= 1 then
                     OpenShop(Config.Shops[i])
                 end
             end
         end
+
     end
 end)
 
 Citizen.CreateThread(function()
+    while not PlayerData.job do Citizen.Wait(0) end
     for k,v in pairs(Config.Shops) do
-        local blip = AddBlipForCoord(v.coords.x, v.coords.y, v.coords.z)
-        SetBlipSprite(blip, v.blip.id or 1)
-        SetBlipDisplay(blip, 4)
-        SetBlipScale(blip, v.blip.scale or 0.5)
-        SetBlipColour(blip, v.blip.color or 1)
-        SetBlipAsShortRange(blip, true)
-        BeginTextCommandSetBlipName("STRING")
-        AddTextComponentString(v.blip.name or 'Shop')
-        EndTextCommandSetBlipName(blip)
+        if (not Config.Shops[k].job or Config.Shops[k].job == PlayerData.job.name) then
+            local blip = AddBlipForCoord(v.coords.x, v.coords.y, v.coords.z)
+            SetBlipSprite(blip, v.blip.id or 1)
+            SetBlipDisplay(blip, 4)
+            SetBlipScale(blip, v.blip.scale or 0.5)
+            SetBlipColour(blip, v.blip.color or 1)
+            SetBlipAsShortRange(blip, true)
+            BeginTextCommandSetBlipName("STRING")
+            AddTextComponentString(v.blip.name or 'Shop')
+            EndTextCommandSetBlipName(blip)
+        end
     end
 end)
 
@@ -278,6 +286,12 @@ AddEventHandler("hsn-inventory:client:weapon",function(item)
         curweaponSlot = item.slot
         GiveWeaponToPed(PlayerPedId(), GetHashKey(item.name), item.metadata.ammo, false, false)
         SetCurrentPedWeapon(PlayerPedId(), GetHashKey(item.name), true)
+        local str = item.metadata.weaponlicense
+        if str:find('POL') then
+            SetPedWeaponTintIndex(PlayerPedId(), item.name, 5)
+            if item.name:find('PISTOL') then component = GetHashKey('COMPONENT_AT_PI_FLSH') end
+            if component then GiveWeaponComponentToPed(PlayerPedId(), GetHashKey(item.name), component) end
+        end
         SetPedAmmo(PlayerPedId(), GetHashKey(item.name), item.metadata.ammo)
     end
 end)
