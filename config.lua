@@ -50,7 +50,7 @@ Config.Shops = {
         coords = vector3(452.27, -980.1, 30.6),
         blip = {
             id = 110,
-            name = "Shop",
+            name = "Armoury",
             color = 29,
             scale = 0.6,
         },
