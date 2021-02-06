@@ -7,6 +7,8 @@ Config.DurabilityDecraseAmount = {
 
 
 Config.Shops = {
+
+    -- Regular shop
     {
         coords = vector3(316.3667, -200.783, 54.086),
         blip = {
@@ -27,10 +29,47 @@ Config.Shops = {
                 name = 'WEAPON_PISTOL',
                 price = 25,
                 count = 1,
-                metadata = {}
+                metadata = { weaponlicense = 'HSN', },
+            },
+            {
+                name = 'hsn_pistol_ammo',
+                price = 1,
+                count = 10,
+            },
+            {
+                name = 'identification',
+                price = 15,
+                count = 1
             },
         },
     },
+
+    -- MRPD Armoury
+    {
+        job = 'police',
+        coords = vector3(452.27, -980.1, 30.6),
+        blip = {
+            id = 110,
+            name = "Shop",
+            color = 29,
+            scale = 0.6,
+        },
+        name = 'Armoury',
+        inventory = {
+            {
+                name = 'WEAPON_PISTOL',
+                price = 25,
+                count = 1,
+                metadata = { weaponlicense = 'POL',},
+            },
+            {
+                name = 'hsn_pistol_ammo',
+                price = 1,
+                count = 10,
+            },
+        },
+    },
+
 }
 
 
