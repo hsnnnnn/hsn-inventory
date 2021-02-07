@@ -27,11 +27,7 @@ exports.ghmattimysql:ready(function()
     end)
     print('[^2hsn-inventory^0] - Started!')
     print('[^2hsn-inventory^0] - Items are created!')
-    print('^1[hsn-inventory] - Don\'t restart this script while players in game !')
 end)
-
-
-
 
 IfInventoryCanCarry = function(inventory, maxweight, newWeight)
     newWeight = tonumber(newWeight)
@@ -1138,13 +1134,40 @@ AddEventHandler("hsn-inventory:setplayerInventory",function(identifier,inventory
     end
 end)
 
-AddEventHandler('onResourceStart', function(resourceName)
+AddEventHandler('onResourceStop', function(resourceName)
     if (GetCurrentResourceName() == resourceName) then
         local Players = ESX.GetPlayers()
-       -- print(#Players)
+        for k,v in pairs(Players) do
+            local Player = ESX.GetPlayerFromId(v)
+            local inventory = {}
+            inventory = json.encode(GetInventory(playerInventory[Player.identifier]))
+                exports.ghmattimysql:execute('UPDATE users SET inventory = @inventory WHERE identifier = @identifier', {
+                    ['@inventory'] = inventory,
+                    ['@identifier'] = Player.identifier
+                })
+        end
+    end
+end)
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if (GetCurrentResourceName() == resourceName) then
+        Citizen.Wait(100)
+        local Players = ESX.GetPlayers()
         for k,v in pairs(Players) do
             local Player = ESX.GetPlayerFromId(v)
             playerInventory[Player.identifier] = {}
+            exports.ghmattimysql:ready(function()
+                exports.ghmattimysql:execute('SELECT inventory FROM users WHERE identifier = @identifier', {
+                    ['@identifier'] = Player.identifier
+                }, function(result)
+                    local inventory = {}
+                    if result[1].inventory and result[1].inventory ~= '' then
+                        inventory = json.decode(result[1].inventory)
+                    end
+                    TriggerEvent('hsn-inventory:setplayerInventory', Player.identifier, inventory)
+                end)
+            end)
+
         end
     end
 end)
