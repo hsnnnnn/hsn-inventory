@@ -12,7 +12,6 @@ local Trunks = {}
 local notready = true
 if GetConvar('onesync_enableInfinity', false) == 'true' or GetConvar('onesync', false) == 'on' then oneSync = true end
 
-
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
 ESX.RegisterServerCallback('hsn-inventory:getData',function(source, cb)
@@ -274,7 +273,7 @@ AddEventHandler('hsn-inventory:server:saveInventoryData',function(data)
 				ItemNotify(src,data.oldslotItem.name,data.oldslotItem.count,'Removed')
 			end
 		elseif data.frominv == data.toinv and (data.frominv == 'TargetPlayer') then
-			local playerId = string.sub(data.invid,13)
+			local playerId = string.gsub(data.invid, 'Player', '')
 			local targetplayer = ESX.GetPlayerFromId(playerId)
 				if playerInventory[targetplayer.identifier] ~= nil then
 					if data.type == 'swap' then
@@ -289,7 +288,7 @@ AddEventHandler('hsn-inventory:server:saveInventoryData',function(data)
 					end
 				end
 		elseif data.frominv ~= data.toinv and (data.toinv == 'TargetPlayer' and data.frominv == 'Playerinv') then
-			local playerId = string.sub(data.invid,13)
+			local playerId = string.gsub(data.invid, 'Player', '')
 			local targetplayer = ESX.GetPlayerFromId(playerId)
 			if playerInventory[targetplayer.identifier] ~= nil then
 				if data.type == 'swap' then
@@ -326,8 +325,8 @@ AddEventHandler('hsn-inventory:server:saveInventoryData',function(data)
 				end
 			end
 		elseif data.frominv ~= data.toinv and (data.toinv == 'Playerinv' and data.frominv == 'TargetPlayer') then
-			local playerId = string.sub(data.invid2,13)
-			local targetplayer = ESX.GetPlayerFromId(playerId)local targetplayer = tPlayer
+			local playerId = string.gsub(data.invid2, 'Player', '')
+			local targetplayer = ESX.GetPlayerFromId(playerId)
 			if playerInventory[targetplayer.identifier] ~= nil then
 				if data.type == 'swap' then
 					if IfInventoryCanCarry(playerInventory[Player.identifier],Config.MaxWeight, (data.toItem.weight * data.toItem.count)) then
@@ -594,6 +593,7 @@ AddEventHandler('hsn-inventory:server:saveInventoryData',function(data)
 			elseif data.type == 'freeslot' then
 				if IfInventoryCanCarry(playerInventory[Player.identifier],Config.MaxWeight, (data.item.weight * data.item.count)) then
 					local money = Player.getMoney()
+					if money and not data.item.price then TriggerClientEvent('hsn-inventory:client:refreshInventory',src,playerInventory[Player.identifier]) return end
 					if (money >= (data.item.price * data.item.count)) then
 						Player.removeMoney(data.item.price * data.item.count)
 						ItemNotify(src,data.item.name,data.item.count,'Added')
@@ -627,6 +627,7 @@ AddEventHandler('hsn-inventory:server:saveInventoryData',function(data)
 			elseif data.type == 'yarimswap' then
 				local money = Player.getMoney()
 				if IfInventoryCanCarry(playerInventory[Player.identifier],Config.MaxWeight, (data.newslotItem.weight * data.newslotItem.count)) then
+					if money and not data.newslotItem.price then TriggerClientEvent('hsn-inventory:client:refreshInventory',src,playerInventory[Player.identifier]) return end
 					if (money >= (data.newslotItem.price *  data.newslotItem.count)) then
 						if data.newslotItem.name:find('WEAPON_') then
 							if Config.Throwable[data.newslotItem.name] then
@@ -680,7 +681,7 @@ CreateNewDrop = function(source,data)
 	Drops[dropid] = {}
 	Drops[dropid].inventory = {}
 	Drops[dropid].name = dropid
-	Drops[dropid].slots = 50
+	Drops[dropid].slots = 51
 	if data.type == 'swap' then
 		TriggerClientEvent('hsn-inventory:client:checkweapon',src,data.toItem)
 		Drops[dropid].inventory[data.toslot] = {name = data.toItem.name ,label = data.toItem.label, weight = data.toItem.weight, slot = data.toslot, count = data.toItem.count, description = data.toItem.description, metadata = data.toItem.metadata, stackable = data.toItem.stackable, closeonuse = ESXItems[data.toItem.name].closeonuse}
@@ -794,17 +795,17 @@ OpenStash = function(source, stash)
 	end
 end
 
-
-RegisterServerEvent('hsn-inventory:server:openTargetInventory')
+-- DISABLE FOR NOW, works very inconsistently and has issues with duping
+--[[RegisterServerEvent('hsn-inventory:server:openTargetInventory')
 AddEventHandler('hsn-inventory:server:openTargetInventory',function(TargetId)
 	if notready then return end
 	local Player = ESX.GetPlayerFromId(source)
 	local tPlayer = ESX.GetPlayerFromId(TargetId)
 	if source == TargetId then tPlayer = nil end -- Don't allow source and targetid to match
-	if playerInventory[tPlayer.identifier] == nil then
-		playerInventory[tPlayer.identifier] = {}
-	end
 	if tPlayer and Player then
+		if playerInventory[tPlayer.identifier] == nil then
+			playerInventory[tPlayer.identifier] = {}
+		end
 		if checkOpenable(source, 'Player'..TargetId, GetEntityCoords(GetPlayerPed(TargetId))) then
 			local data = {}
 			data.name = 'Player'..TargetId -- do not touch
@@ -814,7 +815,7 @@ AddEventHandler('hsn-inventory:server:openTargetInventory',function(TargetId)
 			TriggerClientEvent('hsn-inventory:client:openInventory',source,playerInventory[Player.identifier], data)
 		end
 	end
-end)
+end)]]
 
 RegisterServerEvent('hsn-inventory:server:saveInventory')
 AddEventHandler('hsn-inventory:server:saveInventory',function(data)
@@ -1149,10 +1150,10 @@ AddEventHandler('hsn-inventory:client:removeItem',function(item, count, metadata
 end)
 
 removeItem = function(src, item, count, metadata, slot)
-	local Player = ESX.GetPlayerFromId(src)
 	if item == nil then
 		return
 	end
+	local Player = ESX.GetPlayerFromId(src)
 	if count == nil then
 		count = 1
 	end
@@ -1160,10 +1161,10 @@ removeItem = function(src, item, count, metadata, slot)
 end
 
 addItem = function(src, item, count, metadata)
-	local Player = ESX.GetPlayerFromId(src)
 	if item == nil then
 		return
 	end
+	local Player = ESX.GetPlayerFromId(src)
 	if count == nil then
 		count = 1
 	end
@@ -1175,6 +1176,9 @@ addItem = function(src, item, count, metadata)
 end
 
 getItemCount = function(src, item)
+	if item == nil then
+		return
+	end
 	local Player = ESX.GetPlayerFromId(src)
 	if playerInventory[Player.identifier] == nil then
 		return
@@ -1184,12 +1188,16 @@ getItemCount = function(src, item)
 end
 
 getItem = function(src, item, metadata)
+	if item == nil then
+		return
+	end
 	local Player = ESX.GetPlayerFromId(src)
 	if playerInventory[Player.identifier] == nil then
 		return
 	end
 	local inventory = playerInventory[Player.identifier]
 	local xItem = ESXItems[item]
+	if not xItem then print('^1[hsn-inventory]^3 Item '.. item ..' does not exist^7') end
 	xItem.metadata = {type = metadata}
 	xItem.count = 0
 	for k, v in pairs(inventory) do
@@ -1201,6 +1209,9 @@ getItem = function(src, item, metadata)
 end
 
 canCarryItem = function(src, item, count)
+	if item == nil then
+		return
+	end
 	local weight = 0
 	local newWeight = (ESXItems[item].weight * count)
 	local returnData = false
@@ -1220,6 +1231,9 @@ end
 
 
 useItem = function(src, item, slot)
+	if item == nil then
+		return
+	end
 	local metadata = item.metadata.type
 	if Config.ItemList[item.name] then
 		if not next(Config.ItemList[item.name]) then return end
@@ -1230,6 +1244,9 @@ useItem = function(src, item, slot)
 end
 
 ESX.RegisterServerCallback('hsn-inventory:getItemCount',function(source, cb, item)
+	if item == nil then
+		return
+	end
 	local src = source
 	local Player = ESX.GetPlayerFromId(src)
 	if playerInventory[Player.identifier] == nil then
@@ -1240,6 +1257,9 @@ ESX.RegisterServerCallback('hsn-inventory:getItemCount',function(source, cb, ite
 end)
 
 ESX.RegisterServerCallback('hsn-inventory:getItem',function(source, cb, item, metadata)
+	if item == nil then
+		return
+	end
 	local src = source
 	local Player = ESX.GetPlayerFromId(src)
 	if playerInventory[Player.identifier] == nil then

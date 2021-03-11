@@ -69,6 +69,15 @@ AddEventHandler('esx:onPlayerSpawn', function(spawn)
 	isDead = false
 end)
 
+AddEventHandler('playerSpawned', function(spawn)
+	isDead = false
+end)
+
+AddEventHandler('esx_ambulancejob:setDeathStatus', function(status)
+	isDead = status
+end)
+
+
 RegisterNetEvent('esx_policejob:handcuff')
 AddEventHandler('esx_policejob:handcuff', function()
 	isCuffed = not isCuffed
@@ -194,7 +203,7 @@ RegisterCommand('vehinv', function()
 		local plate = GetVehicleNumberPlateText(vehicle)
 		OpenGloveBox(plate)
 	end
-end,false)
+end, false)
 	
 RegisterCommand('inventory', function()
 	if not playerName then return end
@@ -216,6 +225,7 @@ end
 
 RegisterNetEvent('hsn-inventory:client:openInventory')
 AddEventHandler('hsn-inventory:client:openInventory',function(inventory,other)
+	if not playerName then return end
 	invOpen = true
 	ESX.SetPlayerData('inventory', inventory)
 	SendNUIMessage({
@@ -244,6 +254,7 @@ end)
 
 RegisterNetEvent('hsn-inventory:client:refreshInventory')
 AddEventHandler('hsn-inventory:client:refreshInventory',function(inventory)
+	if not playerName then return end
 	SendNUIMessage({
 		message = 'refresh',
 		inventory = inventory,
@@ -560,7 +571,8 @@ AddEventHandler('hsn-inventory:client:checkweapon',function(item)
 	end
 end)
 
-RegisterCommand('steal',function()
+-- DISABLE FOR NOW, works very inconsistently and has issues with duping
+--[[RegisterCommand('steal',function()
 	local ped = playerPed
 	if not IsPedInAnyVehicle(ped, true) and not isDead and not isCuffed then	 
 		openTargetInventory()
@@ -577,7 +589,7 @@ function openTargetInventory()
 	else
 		TriggerEvent('hsn-inventory:notification','There is nobody nearby')
 	end
-end
+end]]
 
 local nui_focus = {false, false}
 function SetNuiFocusAdvanced(hasFocus, hasCursor, allowMovement)
