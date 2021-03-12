@@ -47,18 +47,15 @@
 			HSN.RefreshInventory(event.data)
 			DragAndDrop()
 		} else if (event.data.message == 'hsn-hotbar') {
-			HSN.Hotbar(event.data.inventory) 
+			//HSN.Hotbar(event.data.items) 
 		}else if (event.data.message == "notify") {
 			HSN.NotifyItems(event.data.item,event.data.text)
 		}
 	})
 
-	HSN.Hotbar = function(inventory) {
-		var durability = HSN.InventoryGetDurability(100)
-		// // soon
+	HSN.Hotbar = function(hotbar) {
+		
 	}
-
-
 
 	HSN.NotifyItems = function(item, text) {
 		if (timer !== null) {
@@ -194,7 +191,6 @@
 				for(i = 1; i < (data.rightinventory.slots); i++) {
 					$(".inventory-main-rightside").find("[inventory-slot=" + i + "]").remove();
 					$(".inventory-main-rightside").append('<div class="ItemBoxes" inventory-slot=' + i +'></div> ')
-					$(".inventory-main-rightside").find("[inventory-slot=" + i + "]").addClass("drag-item");
 				}
 				if (data.rightinventory.type == 'shop') {
 					inventoryidd = data.rightinventory.name
@@ -264,7 +260,6 @@
 			start: function(event, ui) {
 				IsDragging = true;
 				$(this).find("img").css("filter", "brightness(50%)");
-				var itemData = $(this).data("ItemData");
 				count = $("#item-count").val();
 			},
 			stop: function() {
@@ -614,7 +609,7 @@
 
 				}
 			} else {
-				if (inv2 == 'Playerinv') { HSN.InventoryMessage('You are carrying too much', 2) }
+				if (inv2 == 'Playerinv') { HSN.InventoryMessage('You can not carry that much', 2) }
 			}
 		}
 		DragAndDrop()
